@@ -1,0 +1,61 @@
+from flask import Flask, request, render_template, redirect, url_for
+
+app = Flask(__name__)
+
+# Banco de dados temporário para demonstração
+users = {}
+postagens = []
+objetos = []
+
+# Rota para a página de cadastro
+@app.route('/cadastro', methods=['GET', 'POST'])
+def cadastro():
+    if request.method == 'POST':
+        email = request.form['email']
+        senha = request.form['senha']
+        nome = request.form['nome']
+        # Valide os dados, adicione ao banco de dados, redirecione para a página de login, etc.
+        users[email] = {'senha': senha, 'nome': nome}
+        return redirect(url_for('login'))
+    return render_template('cadastro.html')
+
+# Rota para a página de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        senha = request.form['senha']
+        # Valide o login, verifique as credenciais, etc.
+        if users.get(email) and users[email]['senha'] == senha:
+            return redirect(url_for('pagina_inicial'))
+    return render_template('login.html')
+
+# Rota para a página inicial
+@app.route('/')
+def pagina_inicial():
+    # Exibir postagens e objetos perdidos/encontrados
+    return render_template('pagina_inicial.html', postagens=postagens, objetos=objetos)
+
+# Rota para criar uma postagem
+@app.route('/criar_postagem', methods=['GET', 'POST'])
+def criar_postagem():
+    if request.method == 'POST':
+        # Obtenha os detalhes da postagem do formulário e adicione à lista de postagens
+        titulo = request.form['titulo']
+        descricao = request.form['descricao']
+        postagens.append({'titulo': titulo, 'descricao': descricao})
+        return redirect(url_for('pagina_inicial'))
+    return render_template('criar_postagem.html')
+
+# Rota para buscar objetos
+@app.route('/buscar_objeto', methods=['GET', 'POST'])
+def buscar_objeto():
+    if request.method == 'POST':
+        # Obtenha os critérios de busca e filtre a lista de objetos
+        nome_objeto = request.form['nome_objeto']
+        objetos_filtrados = [objeto for objeto in objetos if nome_objeto.lower() in objeto['nome'].lower()]
+        return render_template('buscar_objeto.html', objetos=objetos_filtrados)
+    return render_template('buscar_objeto.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
